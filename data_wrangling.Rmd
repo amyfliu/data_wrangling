@@ -1,0 +1,26 @@
+---
+title: "data_manipulation"
+author: "Fang Liu"
+date: "9/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+```
+
+Read in the .csv file
+```{r}
+litters <- read.csv(file = "./data/FAS_litters.csv")
+names(litters)
+
+#change all variables names to snake_case using janitor::clean_names()
+litters_data = janitor::clean_names(litters)
+names(litters_data)
+
+#explore teh dataset
+str(litters_data)
+```
+
+
+
