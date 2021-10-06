@@ -77,11 +77,4 @@ litters_df2 =
   drop_na(weight_change) %>%
   filter(group %in% c("con7", "con8")) %>%
   select(litter_number, group, weight_change, everything())
-
-  
-
 ```
-
-
-
-
