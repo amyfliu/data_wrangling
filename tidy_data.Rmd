@@ -2,23 +2,24 @@
 title: "tidy_data"
 author: "Fang Liu"
 date: "10/6/2021"
-output: html_document
+output: github_document
 ---
 
-Load needed packages and set up
-```{r setup}
+Load needed packages and set up.
+```{r setup, message =FALSE}
 library(tidyverse)
 options(tibble.print_min = 5) #limit the number of lines printed in a tibble 
 ```
 
 ### pivot_longer
-```{r load_data}
+```{r load}
 pulse_df = 
   haven::read_sas("./data/public_pulse_data.sas7bdat") %>%
   janitor::clean_names()
 
 pulse_df
 ```
+
 
 Note that the bdi data is spread across four columns, which correspond to 4 observation times. We can solve this problem by using **pivot_longer**. I think this is similar to the transpose function in SAS.
 ```{r}
@@ -27,18 +28,6 @@ pulse_tidy_data =
     pulse_df, 
     bdi_score_bl:bdi_score_12m,
     names_to = "visit", 
-    values_to = "bdi")
-
-pulse_tidy_data
-```
-
-```{r}
-pulse_tidy_data = 
-  pivot_longer(
-    pulse_df, 
-    bdi_score_bl:bdi_score_12m,
-    names_to = "visit", 
-    names_prefix = "bdi_score_",
     values_to = "bdi")
 
 pulse_tidy_data
@@ -63,8 +52,7 @@ pulse_df =
 print(pulse_df, n = 12)
 ```
 
-In the litters data, the variables gd0_weight and gd18_weight give the weight of the mother mouse on gestational days 0 and 18. Write a data cleaning chain that retains only litter_number and these columns; produces new variables gd and weight; and makes gd a numeric variable taking values 0 and 18 (for the last part, you might want to use recode …). Is this version “tidy”?
-
+In the litters data, the variables gd0_weight and gd18_weight give the weight of the mother mouse on gestational days 0 and 18. Write a data cleaning chain that retains only litter_number and these columns; produces new variables gd and weight; and makes gd a numeric variable taking values 0 and 18.
 ```{r}
 litter_data = 
   read_csv("./data/FAS_litters.csv", col_types = "ccddiiii") %>% 
@@ -100,7 +88,6 @@ pivot_wider(
   values_from = "mean") 
 ```
 
-
 ### Binding Rows
 ```{r load_data}
 fellowship_ring = 
@@ -131,7 +118,6 @@ lotr_tidy =
 lotr_tidy
 ```
 Note that having the data in this form will make it easier to make comparisons across moviess, aggregate within races across the trilogy, and other analyses. 
-
 
 ### Joining datasets
 
@@ -171,15 +157,15 @@ fas_data
 ```
 A left join of litter data (y) into pup data (x) will retain data on each pup and add data in new column.
 
-#### Learning Assessment
 
-The data sets in this zip file contain de-identified responses to surveys included in past years of this course. Both contain a unique student identifier:
-* responses to a question about operating systems
+#### Learning Assessment
+The data sets in this zip file contain de-identified responses to surveys included in past years of this course. Both contain a unique student identifier. 
+
+* responses to a question about operating systems   
 * responses to questions about degree program and git experience
 
 Write a code chunk that imports and cleans both datasets, and then joins them.
-
-```{r load}
+```{r}
 os = read_csv("./survey_results/surv_os.csv") %>%
   janitor::clean_names() %>% 
   rename(identifier = what_is_your_uni, os = what_operating_system_do_you_use)
@@ -198,3 +184,4 @@ data_joined = left_join(os, git, by = "identifier" )
 ms = data_joined %>% filter(program == 'MS') #76
 mph = data_joined %>% filter(program == 'MPH') #44
 ```
+
