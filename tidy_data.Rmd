@@ -81,3 +81,120 @@ litter_data
 
 
 ### pivot_wider
+```{r example}
+analysis_result = tibble(
+  group = c("treatment", "treatment", "placebo", "placebo"),
+  time = c("pre", "post", "pre", "post"),
+  mean = c(4, 8, 3.5, 4)
+)
+
+analysis_result 
+#this is good for analysis (observations in rows and variables in columns) but not human friendly 
+```
+
+Create non-tidy data that is easier for humans to read! 
+```{r}
+pivot_wider(
+  analysis_result, 
+  names_from = "time", 
+  values_from = "mean") 
+```
+
+
+### Binding Rows
+```{r load_data}
+fellowship_ring = 
+  readxl::read_excel("./data/LotR_Words.xlsx", range = "B3:D6") %>%
+  mutate(movie = "fellowship_ring") #add a new column named movie to the end of the table/data frame
+
+two_towers = 
+  readxl::read_excel("./data/LotR_Words.xlsx", range = "F3:H6") %>%
+  mutate(movie = "two_towers")
+
+return_king = 
+  readxl::read_excel("./data/LotR_Words.xlsx", range = "J3:L6") %>%
+  mutate(movie = "return_king")
+```
+
+Now we can stack them up using **bind_rows** and tidy the result.
+```{r combine_rows}
+lotr_tidy = 
+  bind_rows(fellowship_ring, two_towers, return_king) %>%
+  janitor::clean_names() %>%
+  pivot_longer(
+    female:male,
+    names_to = "gender", 
+    values_to = "words") %>%
+  mutate(race = str_to_lower(race)) %>% 
+  select(movie, everything()) 
+
+lotr_tidy
+```
+Note that having the data in this form will make it easier to make comparisons across moviess, aggregate within races across the trilogy, and other analyses. 
+
+
+### Joining datasets
+
+Data can be spread across multiple related tables, in which case it is necessary to combine or **join** them prior to analysis. 
+
+To join data frames x and y: 
+* Inner: keeps data that appear in BOTH x and y (i.e., intersection)
+* Left: keeps data that appear in x
+* Right: keeps data that appear in y
+* Full: keeps data that appear in either x or y (i.e., union)
+
+Left joins are the most common!
+```{r join_example}
+#pup data = contains information about each puppy
+pup_data = 
+  read_csv("./data/FAS_pups.csv") %>%
+  janitor::clean_names() %>%
+  mutate(
+    sex = recode(sex, `1` = "male", `2` = "female"),
+    sex = factor(sex)) #make the sex variaible into a factor 
+
+#litter data = continas data about each litter
+litter_data = 
+  read_csv("./data/FAS_litters.csv") %>%
+  janitor::clean_names() %>%
+  separate(group, into = c("dose", "day_of_tx"), sep = 3) %>%
+  relocate(litter_number) %>%
+  mutate(
+    wt_gain = gd18_weight - gd0_weight,
+    dose = str_to_lower(dose))
+
+#perform a left join
+fas_data = 
+  left_join(pup_data, litter_data, by = "litter_number")
+
+fas_data
+```
+A left join of litter data (y) into pup data (x) will retain data on each pup and add data in new column.
+
+#### Learning Assessment
+
+The data sets in this zip file contain de-identified responses to surveys included in past years of this course. Both contain a unique student identifier:
+* responses to a question about operating systems
+* responses to questions about degree program and git experience
+
+Write a code chunk that imports and cleans both datasets, and then joins them.
+
+```{r load}
+os = read_csv("./survey_results/surv_os.csv") %>%
+  janitor::clean_names() %>% 
+  rename(identifier = what_is_your_uni, os = what_operating_system_do_you_use)
+
+git = read_csv("./survey_results/surv_program_git.csv") %>% 
+  janitor::clean_names() %>% 
+  rename(
+    identifier = what_is_your_uni,
+    program = what_is_your_degree_program,
+    git_exp = which_most_accurately_describes_your_experience_with_git)
+
+data_joined = left_join(os, git, by = "identifier" )
+```
+
+```{r}
+ms = data_joined %>% filter(program == 'MS') #76
+mph = data_joined %>% filter(program == 'MPH') #44
+```
